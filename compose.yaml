@@ -1,0 +1,49 @@
+volumes:
+  server-secrets:
+  client-a-secrets:
+  client-b-secrets:
+  caddy-config:
+  caddy-data:
+
+services:
+  cert-prepper:
+    build:
+      context: ./docker/cert-prepper
+    volumes:
+    - server-secrets:/server-secrets
+    - client-a-secrets:/client-a-secrets
+    - client-b-secrets:/client-b-secrets
+    entrypoint:
+    - /entrypoint.sh
+
+  server:
+    image: caddy:2.11
+    depends_on:
+      cert-prepper:
+        condition: service_completed_successfully
+      echo:
+        condition: service_started
+    volumes:
+    - server-secrets:/secrets
+    - ./docker/server/Caddyfile:/etc/caddy/Caddyfile
+    - caddy-config:/config
+    - caddy-data:/data
+    - ./docker/server/htdocs:/htdocs
+    ports:
+      - '10080:80'
+      - '10443:443'
+
+  echo:
+    image: jmalloc/echo-server:v0.3.7  # 8080/tcp
+
+  client-a:
+    build:
+      context: docker/client
+    volumes:
+    - client-a-secrets:/secrets
+
+  client-b:
+    build:
+      context: docker/client
+    volumes:
+    - client-b-secrets:/secrets
