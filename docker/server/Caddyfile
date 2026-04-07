@@ -1,0 +1,16 @@
+{
+  debug
+  admin :2019
+}
+
+:443 {
+  tls /secrets/server.crt /secrets/server.key {
+    client_auth {
+      mode require_and_verify
+	  trust_pool file {
+	    pem_file "/secrets/ca.crt" "/secrets/intermediate-2026.crt"
+	  }
+    }
+  }
+  reverse_proxy echo:8080
+}
