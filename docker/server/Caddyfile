@@ -14,6 +14,6 @@
   }
   reverse_proxy {
     to echo:8080
-    header_up X-Client "{http.request.tls.client.subject}"
+    header_up X-Client-Subject "{http.request.tls.client.subject}"
   }
 }
