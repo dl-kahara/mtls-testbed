@@ -12,8 +12,15 @@
 	  }
     }
   }
-  reverse_proxy {
-    to echo:8080
-    header_up X-Client-Subject "{http.request.tls.client.subject}"
+
+  request_header -X-Client-Common-Name
+
+  @common_name vars_regexp common_name {http.request.tls.client.subject} (?:^|,\s*)CN=([^,]+)
+
+  handle @common_name {
+    reverse_proxy {
+      to echo:8080
+      header_up X-Client-Common-Name {re.common_name.1}
+    }
   }
 }
